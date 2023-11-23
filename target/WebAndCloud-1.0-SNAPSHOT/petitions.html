@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pétitions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #444;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        select, input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background-color: #f9f9f9;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Pétitions</h1>
+    </header>
+
+    <nav>
+        <a href="lancer_petition.html">Lancer une pétition</a>
+        <a href="petitions.html">Mes pétitions</a>
+        <a href="#">Parcourir les pétitions</a>
+        <a href="#">Nous soutenir</a>
+        <a href="#">Se connecter</a>
+    </nav>
+
+    <section class="search-section">
+        <h2>Recherche par Tag</h2>
+
+        <!-- Formulaire de recherche par tag -->
+        <form>
+            <label for="tagSearch">Recherche par tag (catégorie) :</label>
+            <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
+            <button type="submit">Rechercher</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Top 100</h2>
+
+        <!-- Contenu de la section Top 100 (à remplir dynamiquement) -->
+        <ul>
+            <!-- Exemple d'un élément de la liste -->
+            <li>
+                <h3>Titre de la pétition</h3>
+                <p>Description de la pétition.</p>
+                <p>Signatures : 100,000</p>
+                <p>Catégorie : Catégorie A</p>
+            </li>
+            <!-- Fin de l'exemple -->
+        </ul>
+    </section>
+
+</body>
+</html>

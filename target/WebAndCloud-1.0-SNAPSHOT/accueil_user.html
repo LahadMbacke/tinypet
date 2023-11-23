@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Page de Pétitions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #444;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        nav a:last-child {
+            margin-left: 400px; /* Cette propriété pousse le lien "Profil" vers la droite */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lancer une pétition</h1>
+    </header>
+
+    <nav>
+        <a href="lancer_petition.html">Lancer une pétition</a>
+        <a href="#">Mes pétitions</a>
+        <a href="petitions.html">Parcourir les pétitions</a>
+        <a href="#">Nous soutenir</a>
+        <a id="profilLink" href="glogin-new.html">Profil</a>
+    </nav>
+
+    <!-- Le reste de votre contenu irait ici -->
+
+    <script>
+        const googleName = sessionStorage.getItem("googleName");
+        
+        // Set the text content of the Profil link based on googleName
+        const profilLink = document.getElementById("profilLink");
+        if (profilLink) {
+            profilLink.textContent = googleName;
+        }
+    </script>
+</body>
+</html>
