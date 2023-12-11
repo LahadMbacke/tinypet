@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pétitions</title>
+<meta charset="UTF-8">
+<title>Pétitions</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+<script src="https://unpkg.com/mithril/mithril.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,7 +87,6 @@
 
     <section class="search-section">
         <h2>Recherche par Tag</h2>
-
         <!-- Formulaire de recherche par tag -->
         <form>
             <label for="tagSearch">Recherche par tag (catégorie) :</label>
@@ -90,21 +95,111 @@
         </form>
     </section>
 
-    <section>
-        <h2>Top 100</h2>
+    <main>
+        <script>
+            // var Petition = {
+            //     view: function(vnode) {
+            //         var petition = vnode.attrs.petition;
+    
+            //         return m('div', { class: 'column is-one-third' }, [
+            //             m('div', { class: 'box' }, [
+            //                 m('h1',  'Auteur : '+petition.properties.auteur),
+            //                 m('h1', petition.properties.title),
+            //                 m('p', petition.properties.description),
+            //                 m('p', 'Tags: ' + petition.properties.tags.join(', ')),
+            //                 m('button', { class: 'button is-primary is-fullwidth' }, 'Signature')
+            //             ])
+            //         ]);
+            //     }
+            // };
+            var Petition = {
+            view: function(vnode) {
+                var petition = vnode.attrs.petition;
 
-        <!-- Contenu de la section Top 100 (à remplir dynamiquement) -->
-        <ul>
-            <!-- Exemple d'un élément de la liste -->
-            <li>
-                <h3>Titre de la pétition</h3>
-                <p>Description de la pétition.</p>
-                <p>Signatures : 100,000</p>
-                <p>Catégorie : Catégorie A</p>
-            </li>
-            <!-- Fin de l'exemple -->
-        </ul>
-    </section>
+                return m('div', { class: 'column is-one-third' }, [
+                    m('div', { class: 'box' }, [
+                        m('h1', 'Auteur : ' + petition.properties.auteur),
+                        m('h1', petition.properties.title),
+                        m('p', petition.properties.description),
+                        m('p', 'Tags: ' + petition.properties.tags.join(', ')),
+                        m('button', {
+                            class: 'button is-primary is-fullwidth',
+                            onclick: function() {
+                                if (isLoggedIn()) {
+                                    // L'utilisateur est connecté, vous pouvez autoriser la signature ici
+                                    signPetition(petition.id);
+                                } else {
+                                    // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+                                    redirectToLogin();
+                                }
+                            }
+                        }, 'Signature')
+                    ])
+                ]);
+            }
+        };
 
-</body>
-</html>
+        // Fonction pour vérifier si l'utilisateur est connecté
+        function isLoggedIn() {
+            // Implémentez la logique pour vérifier l'authentification de l'utilisateur
+            // Par exemple, vérifiez si une session est active ou si un jeton JWT est présent
+            // Retournez true si l'utilisateur est connecté, sinon false
+            // Cette fonction dépendra de votre système d'authentification
+        }
+
+        // Fonction pour gérer la signature de la pétition par l'utilisateur connecté
+        function signPetition(petitionId) {
+            // Implémentez la logique pour permettre à l'utilisateur de signer la pétition
+            // Envoyez une requête au serveur pour enregistrer la signature de l'utilisateur sur la pétition spécifiée
+            // Cette fonction dépendra de votre système de gestion des signatures de pétitions
+        }
+
+        // Fonction pour rediriger vers la page de connexion
+        function redirectToLogin() {
+            // Implémentez la logique pour rediriger l'utilisateur vers la page de connexion
+            // Par exemple, utilisez window.location.href pour rediriger l'utilisateur
+        }
+
+    
+            var Petitions = {
+                list: [],
+                loadList: function() {
+                    return m.request({
+                        method: "GET",
+                        url: "_ah/api/myApi/v1/topTenPetitions"
+                    })
+                    .then(function(result) {
+                        Petitions.list = result.items || [];
+                        console.log("got:", result.items);
+                    });
+                }
+            };
+    
+            var PetitionsView = {
+                oninit: Petitions.loadList,
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        m("h1", { class: 'title' }, 'Liste des Pétitions'),
+                        m('div', { class: 'columns is-multiline' }, 
+                            Petitions.list.map(function(petition) {
+                                return m(Petition, { petition: petition });
+                            })
+                        )
+                    ]);
+                }
+            };
+    
+            var Hello = {
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        m('div', { class: 'tile is-ancestor' }, [
+                            m("div", { class: 'tile' }, m('div', { class: 'tile is-child box' }, m(PetitionsView))),
+                        ])
+                    ]);
+                }
+            };
+    
+            m.mount(document.querySelector('main'), Hello);
+        </script>
+    </body>
+    </html>

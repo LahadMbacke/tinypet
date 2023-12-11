@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lancer une Pétition</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,6 +73,8 @@
             background-color: #555;
         }
     </style>
+
+    <title>Lancer une Pétition</title>
 </head>
 <body>
     <header>
@@ -84,18 +89,98 @@
         <a href="#">Se connecter</a>
     </nav>
 
-    <form>
-        <label for="petitionTitle">Titre de la Pétition :</label>
-        <input type="text" id="petitionTitle" name="petitionTitle" required>
+    <main>
+        <script>	
+            const id_user = sessionStorage.getItem("googleId");
+            const googleName = sessionStorage.getItem("googleName");
+            console.log(id_user)
 
-        <label for="petitionDescription">Description de la Pétition :</label>
-        <textarea id="petitionDescription" name="petitionDescription" rows="4" required></textarea>
+    // Définition du modèle de l'application Mithril
+    var Petition = {
+            title: '',
+            description: '',
+            tags: '',
 
-        <label for="petitionTags">Tags (séparés par des virgules) :</label>
-        <input type="text" id="petitionTags" name="petitionTags">
+            submit: function() {
+                var data = {
+                    auteur :googleName,
+                    title: Petition.title,
+                    description: Petition.description,
+                    creatorId :id_user,
+                    status: 'active', // Statut de la pétition
+                    tags: Petition.tags.split(',') // Séparation des tags par des virgules
+                };
 
-        <button type="submit">Lancer la Pétition</button>
-    </form>
+                return m.request({
+                    method: "POST",
+                    url: "_ah/api/myApi/v1/addPetition",
+                    body: data
+                }).then(function(result) {
+                    console.log("Pétition soumise avec succès :", result);
+                    // Réinitialisation des champs du formulaire après la soumission
+                    Petition.title = '';
+                    Petition.description = '';
+                    Petition.tags = '';
+                }).catch(function(error) {
+                    console.error("Erreur lors de la soumission de la pétition :", error);
+                });
+            }
+        };
+
+
+// Composant Mithril pour le formulaire de la pétition
+var PetitionForm = {
+    view: function() {
+        return m('form', {
+            onsubmit: function(e) {
+                e.preventDefault();
+                Petition.submit();
+            }
+        }, [
+            m('label', { for: 'petitionTitle' }, 'Titre de la Pétition :'),
+            m('input[type=text]', {
+                id: 'petitionTitle',
+                name: 'petitionTitle',
+                required: true,
+                value: Petition.title,
+                oninput: function(e) {
+                    Petition.title = e.target.value;
+                }
+            }),
+
+            m('label', { for: 'petitionDescription' }, 'Description de la Pétition :'),
+            m('textarea', {
+                id: 'petitionDescription',
+                name: 'petitionDescription',
+                rows: '4',
+                required: true,
+                value: Petition.description,
+                oninput: function(e) {
+                    Petition.description = e.target.value;
+                }
+            }),
+
+            m('label', { for: 'petitionTags' }, 'Tags (séparés par des virgules) :'),
+            m('input[type=text]', {
+                id: 'petitionTags',
+                name: 'petitionTags',
+                value: Petition.tags,
+                oninput: function(e) {
+                    Petition.tags = e.target.value;
+                }
+            }),
+
+            m('button[type=submit]', 'Lancer la Pétition')
+        ]);
+    }
+};
+
+// Montage du composant Mithril
+// m.mount(document.body, PetitionForm);
+m.mount(document.querySelector('main'), PetitionForm);
+
+
+</script>	
 
 </body>
 </html>

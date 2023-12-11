@@ -66,8 +66,7 @@ public class ScoreEndpoint {
 		}
         System.out.println("Yeah:"+user.toString());
 		return user;
-	}
-
+	} 
 
 	@ApiMethod(name = "scores", httpMethod = HttpMethod.GET)
 	public List<Entity> scores() {
@@ -114,22 +113,6 @@ public class ScoreEndpoint {
 		return e;
 	}
 
-	@ApiMethod(name = "postMessage", httpMethod = HttpMethod.POST)
-	public Entity postMessage(PostMessage pm) {
-
-		Entity e = new Entity("Post"); // quelle est la clef ?? non specifié -> clef automatique
-		e.setProperty("owner", pm.owner);
-		e.setProperty("url", pm.url);
-		e.setProperty("body", pm.body);
-		e.setProperty("likec", 0);
-		e.setProperty("date", new Date());
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		Transaction txn = datastore.beginTransaction();
-		datastore.put(e);
-		txn.commit();
-		return e;
-	}
 
 	@ApiMethod(name = "mypost", httpMethod = HttpMethod.GET)
 	public CollectionResponse<Entity> mypost(@Named("name") String name, @Nullable @Named("next") String cursorString) {
@@ -209,29 +192,79 @@ public class ScoreEndpoint {
 	}
 
 	@ApiMethod(name = "postMsg", httpMethod = HttpMethod.POST)
-	public Entity postMsg(User user, PostMessage pm) throws UnauthorizedException {
+	public Entity postMsg(PostPetition petition) throws UnauthorizedException {
+        // if (petition == null) {
+        //     throw new UnauthorizedException("Invalid credentials");
+        // }
+          System.out.println(petition.title);
+            Entity e = new Entity("Petition"); // Création d'une entité pour la pétition
+            e.setProperty("title", petition.title);
+            e.setProperty("description", petition.description);
+            e.setProperty("creatorId", petition.creatorId);
+            e.setProperty("status", petition.status);
+            e.setProperty("tags", petition.tags);
+            e.setProperty("creationDate", new Date()); // Date de création de la pétition
+        
+            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+            datastore.put(e); // Stockage de l'entité de la pétition dans Datastore
+        
+            return e; // Retourne l'entité de la pétition nouvellement ajoutée
+        
 
-		if (user == null) {
-			throw new UnauthorizedException("Invalid credentials");
-		}
+// 		if (user == null) {
+// 			throw new UnauthorizedException("Invalid credentials");
+// 		}
 
-		Entity e = new Entity("Post", Long.MAX_VALUE-(new Date()).getTime()+":"+user.getEmail());
-		e.setProperty("owner", user.getEmail());
-		e.setProperty("url", pm.url);
-		e.setProperty("body", pm.body);
-		e.setProperty("likec", 0);
-		e.setProperty("date", new Date());
+// 		Entity e = new Entity("Post", Long.MAX_VALUE-(new Date()).getTime()+":"+user.getEmail());
+// 		e.setProperty("owner", user.getEmail());
+// 		e.setProperty("url", pm.url);
+// 		e.setProperty("body", pm.body);
+// 		e.setProperty("likec", 0);
+// 		e.setProperty("date", new Date());
 
-///		Solution pour pas projeter les listes
-//		Entity pi = new Entity("PostIndex", e.getKey());
-//		HashSet<String> rec=new HashSet<String>();
-//		pi.setProperty("receivers",rec);
+// ///		Solution pour pas projeter les listes
+// //		Entity pi = new Entity("PostIndex", e.getKey());
+// //		HashSet<String> rec=new HashSet<String>();
+// //		pi.setProperty("receivers",rec);
 		
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		Transaction txn = datastore.beginTransaction();
-		datastore.put(e);
-//		datastore.put(pi);
-		txn.commit();
-		return e;
+// 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+// 		Transaction txn = datastore.beginTransaction();
+// 		datastore.put(e);
+// //		datastore.put(pi);
+// 		txn.commit();
+// 		return e;
 	}
+
+
+    @ApiMethod(name = "addPetition", httpMethod = HttpMethod.POST)
+public Entity addPetition(PostPetition petition) throws UnauthorizedException {
+    // if (user == null) {
+    //      	throw new UnauthorizedException("Invalid credentials");
+    //     }
+
+    Entity e = new Entity("Petition"); // Création d'une entité pour la pétition
+    e.setProperty("auteur", petition.auteur);
+    e.setProperty("title", petition.title);
+    e.setProperty("description", petition.description);
+    e.setProperty("creatorId", petition.creatorId);
+    e.setProperty("status", petition.status);
+    e.setProperty("tags", petition.tags);
+    e.setProperty("creationDate", new Date()); // Date de création de la pétition
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    datastore.put(e); // Stockage de l'entité de la pétition dans Datastore
+
+    return e; // Retourne l'entité de la pétition nouvellement ajoutée
+}
+@ApiMethod(name = "topTenPetitions", httpMethod = HttpMethod.GET)
+public List<Entity> topTenPetitions() {
+    Query q = new Query("Petition").addSort("creationDate", SortDirection.DESCENDING);
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery pq = datastore.prepare(q);
+    List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
+    return result;
+}
+
+
 }
