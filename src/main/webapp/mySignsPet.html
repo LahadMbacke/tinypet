@@ -80,35 +80,35 @@
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
         <a href="petitions.html">Mes pétitions</a>
-        <a href="petitions.html">Parcourir les pétitions</a>
+        <a href="#">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
         <a href="#">Se connecter</a>
     </nav>
 
-    <!-- <section class="search-section">
+
+    <section class="search-section">
         <h2>Recherche par Tag</h2>
-         Formulaire de recherche par tag -->
-        <!-- <form>
+        <!-- Formulaire de recherche par tag -->
+        <form>
             <label for="tagSearch">Recherche par tag (catégorie) :</label>
             <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
             <button type="submit">Rechercher</button>
         </form>
-    </section>  -->
+    </section>
 
     <main>
         <script>
             const id_user = sessionStorage.getItem("googleId");
             const googleName = sessionStorage.getItem("googleName");
             console.log(id_user)
-           
-
+ 
 var Petition = {
     view: function(vnode) {
         var petition = vnode.attrs.petition;
         var petitionKey = petition.key.id;
         var hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
-        var buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-danger is-fullwidth';
+        var buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-primary is-fullwidth';
         var buttonText = hasSigned ? 'Déjà signée' : 'Signature';
 
         return m('div', { class: 'column is-one-third' }, [
@@ -123,7 +123,7 @@ var Petition = {
                     onclick: function() {
                         if (isLoggedIn()) {
                             if (!hasSigned) {
-                                signPetition(petitionKey);
+                                // signPetition(petitionKey);
                             } else {
                                 alert('Vous avez déjà signé cette pétition.');
                             }
@@ -139,29 +139,6 @@ var Petition = {
 
 
 
-            function isLoggedIn() {
-                return id_user !== null;
-            }
-
-            function signPetition(petitionId) {
-                if (!isLoggedIn()) {
-                    redirectToLogin();
-                    return;
-                }
-                var url = "_ah/api/myApi/v1/signPetition/"+petitionId+"/"+id_user
-
-                m.request({
-                    method: 'GET',
-                    url: url,
-                })
-                .then(response => {
-                    console.log('Signature enregistrée avec succès!');
-                    // Mettre à jour l'interface utilisateur si nécessaire
-                })
-                .catch(error => {
-                    console.error('Erreur lors de l\'enregistrement de la signature:', error);
-                });
-            }
 
 
         // Fonction pour rediriger vers la page de connexion
@@ -171,12 +148,12 @@ var Petition = {
         }
 
     
-            var Petitions = {
+        var Petitions = {
                 list: [],
                 loadList: function() {
                     return m.request({
                         method: "GET",
-                        url: "_ah/api/myApi/v1/topTenPetitions"
+                        url: "_ah/api/myApi/v1/userSignedPetitions/"+id_user // Ajoute correctement l'ID de l'utilisateur
                     })
                     .then(function(result) {
                         Petitions.list = result.items || [];
@@ -184,21 +161,27 @@ var Petition = {
                     });
                 }
             };
-    
+
             var PetitionsView = {
-                oninit: Petitions.loadList,
+                oninit: function() {
+                    Petitions.loadList(); // Charger la liste des pétitions signées par l'utilisateur
+                },
                 view: function() {
+                    var signedPetitions = Petitions.list.filter(function(petition) {
+                        return petition.properties.signatures && petition.properties.signatures.includes(id_user);
+                    });
+
                     return m('div', { class: 'container' }, [
-                        m("h1", { class: 'title' }, 'Liste des Pétitions'),
-                        m('div', { class: 'columns is-multiline' }, 
-                            Petitions.list.map(function(petition) {
+                        m("h1", { class: 'title' }, 'Liste des Pétitions signées'),
+                        m('div', { class: 'columns is-multiline' },
+                            signedPetitions.map(function(petition) {
                                 return m(Petition, { petition: petition });
                             })
                         )
                     ]);
                 }
             };
-    
+
             var Hello = {
                 view: function() {
                     return m('div', { class: 'container' }, [
@@ -208,8 +191,8 @@ var Petition = {
                     ]);
                 }
             };
-    
+
             m.mount(document.querySelector('main'), Hello);
         </script>
     </body>
-    </html>
+</html>

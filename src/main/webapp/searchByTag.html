@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pétitions</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #444;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        select, input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background-color: #f9f9f9;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Pétitions</h1>
+    </header>
+
+    <nav>
+        <a href="lancer_petition.html">Lancer une pétition</a>
+        <a href="petitions.html">Mes pétitions</a>
+        <a href="#">Parcourir les pétitions</a>
+        <a href="mySignsPet.html">Mes pétitions signées</a>
+        <a href="searchByTag.html">Rechercher par tag</a>
+        <a href="#">Se connecter</a>
+    </nav>
+
+
+    <section class="search-section">
+        <h2>Recherche par Tag</h2>
+        <!-- Formulaire de recherche par tag -->
+        <form onsubmit="searchPetitions(event)">
+            <label for="tagSearch">Recherche par tag (catégorie) :</label>
+            <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
+            <button type="submit">Rechercher</button>
+        </form>
+    </section>
+
+    <main>
+        <div class="container" id="petitionsList">
+            <!-- Liste des pétitions affichées ici -->
+        </div>
+    </main>
+
+    <script>
+        const id_user = sessionStorage.getItem("googleId");
+
+        function searchPetitions(event) {
+            event.preventDefault();
+            const tagSearchValue = document.getElementById('tagSearch').value;
+            loadPetitionsByTag(tagSearchValue);
+        }
+
+        function loadPetitionsByTag(tag) {
+            // URL pour interroger l'API avec le tag spécifié
+            const url = "_ah/api/myApi/v1/findPetitionsByTag/"+tag
+
+            // Requête GET vers l'API
+            m.request({
+                method: "GET",
+                url: url
+            })
+            .then(function(result) {
+                // Affichage des pétitions
+                const petitions = result.items || [];
+                const petitionsList = document.getElementById('petitionsList');
+                petitionsList.innerHTML = petitions.map(petition => renderPetition(petition)).join('');
+            })
+            .catch(function(error) {
+                console.error("Erreur de chargement des pétitions", error);
+            });
+        }
+
+        // Fonction pour afficher une pétition
+        function renderPetition(petition) {
+            const petitionKey = petition.key.id;
+            const hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
+            const buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-primary is-fullwidth';
+            const buttonText = hasSigned ? 'Déjà signée' : 'Signature';
+
+            return `
+                <div class='column is-one-third'>
+                    <div class='box'>
+                        <h1>Auteur : ${petition.properties.auteur}</h1>
+                        <p>Clé (ID) : ${petitionKey}</p>
+                        <h1>${petition.properties.title}</h1>
+                        <p>${petition.properties.description}</p>
+                        <p>Tags: ${petition.properties.tags.join(', ')}</p>
+                        <button class='${buttonClass}' onclick="handleButtonClick(${hasSigned}, ${petitionKey})">${buttonText}</button>
+                    </div>
+                </div>`;
+        }
+
+        // Fonction pour gérer le clic sur le bouton de signature
+        function handleButtonClick(hasSigned, petitionKey) {
+            if (isLoggedIn()) {
+                if (!hasSigned) {
+                    // signPetition(petitionKey);
+                } else {
+                    alert('Vous avez déjà signé cette pétition.');
+                }
+            } else {
+                redirectToLogin();
+            }
+        }
+
+        // Fonction pour vérifier si l'utilisateur est connecté
+        function isLoggedIn() {
+            // Logique de vérification de la connexion de l'utilisateur
+            // Retourne true si l'utilisateur est connecté, sinon false
+            return true; // Exemple pour la démo
+        }
+
+        // Fonction pour rediriger vers la page de connexion
+        function redirectToLogin() {
+            // Logique pour rediriger l'utilisateur vers la page de connexion
+            // window.location.href = 'URL_DE_LA_PAGE_DE_CONNEXION';
+        }
+    </script>
+</body>
+</html>
