@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pétitions</title>
+<meta charset="UTF-8">
+<title>Pétitions</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+<script src="https://unpkg.com/mithril/mithril.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -74,37 +80,163 @@
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
         <a href="petitions.html">Mes pétitions</a>
-        <a href="#">Parcourir les pétitions</a>
-        <a href="#">Nous soutenir</a>
-        <a href="#">Se connecter</a>
+        <a href="petitions.html">Parcourir les pétitions</a>
+        <a href="mySignsPet.html">Mes pétitions signées</a>
+        <a href="searchByTag.html">Rechercher par tag</a>
+        <a href="glogin-new.html" id="loginButton">Se connecter</a>
+    <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
     </nav>
-
-    <section class="search-section">
-        <h2>Recherche par Tag</h2>
-
-        <!-- Formulaire de recherche par tag -->
-        <form>
+     <section class="search-section">
+        <!-- <h2>Recherche par Tag</h2>
+         Formulaire de recherche par tag -->
+        <!-- <form>
             <label for="tagSearch">Recherche par tag (catégorie) :</label>
             <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
             <button type="submit">Rechercher</button>
         </form>
-    </section>
+         -->
+    </section>  
+        <main>
+            <script>	
+                let id_user = sessionStorage.getItem("googleId");
+                let googleName = sessionStorage.getItem("googleName");
+                    window.onload = function() {
+                if (id_user) {
+                    userLoggedIn(); // Si l'utilisateur est connecté, déclencher la fonction correspondante
+                } else {
+                    userLoggedOut(); // Sinon, l'utilisateur est déconnecté
+                }
+            };
+                console.log(id_user)
+                function userLoggedIn() {
+            document.getElementById('loginButton').style.display = 'none'; // Cacher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'inline'; // Afficher le bouton de déconnexion
+        }
+    
+        // Au moment où vous détectez que l'utilisateur est déconnecté
+        function userLoggedOut() {
+            document.getElementById('loginButton').style.display = 'inline'; // Afficher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
+        }
+       // Fonction pour déconnecter l'utilisateur
+    function signOut() {
+        id_user = null
+        window.location.href = "glogin-new.html";
+    }
+           
 
-    <section>
-        <h2>Top 100</h2>
+var Petition = {
+    view: function(vnode) {
+        var petition = vnode.attrs.petition;
+        var petitionKey = petition.key.id;
+        var hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
+        var buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-danger is-fullwidth';
+        var buttonText = hasSigned ? 'Déjà signée' : 'Signature';
 
-        <!-- Contenu de la section Top 100 (à remplir dynamiquement) -->
-        <ul>
-            <!-- Exemple d'un élément de la liste -->
-            <li>
-                <h3>Titre de la pétition</h3>
-                <p>Description de la pétition.</p>
-                <p>Signatures : 100,000</p>
-                <p>Catégorie : Catégorie A</p>
-            </li>
-            <!-- Fin de l'exemple -->
-        </ul>
-    </section>
+        return m('div', { class: 'column is-one-third' }, [
+            m('div', { class: 'box' }, [
+                m('h1', 'Auteur : ' + petition.properties.auteur),
+                m('p', 'Clé (ID) : ' + petitionKey),
+                m('h1', petition.properties.title),
+                m('p', petition.properties.description),
+                m('p', 'Tags: ' + petition.properties.tags.join(', ')),
+                m('button', {
+                    class: buttonClass,
+                    onclick: function() {
+                        if (isLoggedIn()) {
+                            if (!hasSigned) {
+                                signPetition(petitionKey);
+                            } else {
+                                alert('Vous avez déjà signé cette pétition.');
+                            }
+                        } else {
+                            redirectToLogin();
+                        }
+                    }
+                }, buttonText)
+            ])
+        ]);
+    }
+};
 
-</body>
-</html>
+
+
+
+            function signPetition(petitionId) {
+                if (!isLoggedIn()) {
+                    redirectToLogin();
+                    return;
+                }
+                var url = "_ah/api/myApi/v1/signPetition/"+petitionId+"/"+id_user
+
+                m.request({
+                    method: 'GET',
+                    url: url,
+                })
+                .then(response => {
+                    console.log('Signature enregistrée avec succès!');
+                    // Mettre à jour l'interface utilisateur si nécessaire
+                })
+                .catch(error => {
+                    console.error('Erreur lors de l\'enregistrement de la signature:', error);
+                });
+            }
+
+
+         // Fonction pour vérifier si l'utilisateur est connecté
+         function isLoggedIn() {
+           if (id_user)
+            return true; 
+           else
+            return false
+        }
+
+        // Fonction pour rediriger vers la page de connexion
+        function redirectToLogin() {
+            window.location.href = "glogin-new.html";
+
+        }
+
+    
+            var Petitions = {
+                list: [],
+                loadList: function() {
+                    return m.request({
+                        method: "GET",
+                        url: "_ah/api/myApi/v1/topTenPetitions"
+                    })
+                    .then(function(result) {
+                        Petitions.list = result.items || [];
+                        console.log("got:", result.items);
+                    });
+                }
+            };
+    
+            var PetitionsView = {
+                oninit: Petitions.loadList,
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        m("h1", { class: 'title' }, 'Liste des Pétitions'),
+                        m('div', { class: 'columns is-multiline' }, 
+                            Petitions.list.map(function(petition) {
+                                return m(Petition, { petition: petition });
+                            })
+                        )
+                    ]);
+                }
+            };
+    
+            var Hello = {
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        m('div', { class: 'tile is-ancestor' }, [
+                            m("div", { class: 'tile' }, m('div', { class: 'tile is-child box' }, m(PetitionsView))),
+                        ])
+                    ]);
+                }
+            };
+    
+            m.mount(document.querySelector('main'), Hello);
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PetitionServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">PetitionServlet.java</span></div><h1>PetitionServlet.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.KeyRange;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+
+@WebServlet(name = &quot;PetServlet&quot;, urlPatterns = { &quot;/petition&quot; })
+public class PetitionServlet extends HttpServlet {
+
+	@Override
+<span class="nc" id="L34">	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {</span>
+
+		response.setContentType(&quot;text/html&quot;);
+		response.setCharacterEncoding(&quot;UTF-8&quot;);
+
+		Random r = new Random();
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+        Entity[] plist=new Entity[100];
+        Entity[] ulist=new Entity[500];
+
+		// Create petition
+		for (int i = 0; i &lt; plist.length; i++) {
+			Entity e = new Entity(&quot;D2Petition&quot;, &quot;P&quot; + i );
+			int owner=r.nextInt(ulist.length);
+			e.setProperty(&quot;Owner&quot;, &quot;U&quot;+ owner);
+			e.setProperty(&quot;Date&quot;, new Date());
+			e.setProperty(&quot;Body&quot;, &quot;bla bla bla&quot;);			
+			e.setProperty(&quot;nb&quot;, 0);
+			
+			// Create random tags
+			HashSet&lt;String&gt; ftags = new HashSet&lt;String&gt;();
+			while (ftags.size() &lt; 10) {
+				ftags.add(&quot;T&quot; + r.nextInt(100));
+			}
+			e.setProperty(&quot;tags&quot;, ftags);
+			
+            plist[i]=e;
+			response.getWriter().print(&quot;&lt;li&gt; created post:&quot; + e.getKey() + &quot;&lt;br&gt;&quot;);
+		}
+        // Create users
+		for (int i = 0; i &lt; ulist.length; i++) {
+			Entity e = new Entity(&quot;D2User&quot;, &quot;U&quot; + i );
+            e.setProperty(&quot;name&quot;, &quot;U&quot;+i);
+
+            // Sign Random Petition
+			HashSet&lt;String&gt; pets = new HashSet&lt;String&gt;();
+			while (pets.size() &lt; 5) {
+                int rpet=r.nextInt(plist.length);
+				pets.add(&quot;P&quot; + rpet);
+                plist[rpet].setProperty(&quot;nb&quot;, (int)plist[rpet].getProperty(&quot;nb&quot;)+1);
+			}
+            e.setProperty(&quot;signed&quot;, pets);
+
+            ulist[i]=e;
+            datastore.put(e);
+            response.getWriter().print(&quot;&lt;li&gt; created user:&quot; + e.getKey() + &quot;&lt;br&gt;&quot;);
+        }
+        for (int i=0;i&lt;plist.length;i++) {
+            datastore.put(plist[i]);
+        }
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

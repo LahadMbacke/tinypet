@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrefixServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">PrefixServlet.java</span></div><h1>PrefixServlet.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.KeyRange;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+import  java.util.concurrent.ThreadLocalRandom;
+
+@WebServlet(name = &quot;PrefixServlet&quot;, urlPatterns = { &quot;/prefix&quot; })
+public class PrefixServlet extends HttpServlet {
+
+	static Random r = new Random();
+
+	
+<span class="nc" id="L39">	public LocalDate between(LocalDate startInclusive, LocalDate endExclusive) {</span>
+	    long startEpochDay = startInclusive.toEpochDay();
+	    long endEpochDay = endExclusive.toEpochDay();
+	    long randomDay = ThreadLocalRandom
+	    	      .current()
+	    	      .nextLong(startEpochDay, endEpochDay);
+	    return LocalDate.ofEpochDay(randomDay);
+	}
+	
+	@Override
+<span class="nc" id="L49">	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {</span>
+
+		response.setContentType(&quot;text/html&quot;);
+		response.setCharacterEncoding(&quot;UTF-8&quot;);
+
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+		
+		LocalDate start = LocalDate.of(2019, Month.OCTOBER, 14);
+		LocalDate end = LocalDate.now();
+
+		
+		
+		// Create posts
+		for (int i = 0; i &lt; 100; i++) {
+			for (int j=0;j&lt;10;j++) {
+				LocalDate rdate = this.between(start, end);
+				Entity e = new Entity(&quot;Post&quot;, &quot;f&quot; +i+&quot;:&quot;+rdate.toString());
+				e.setProperty(&quot;body&quot;, &quot;blabla&quot; + rdate.toString());
+				e.setProperty(&quot;url&quot;, &quot;https://dummyimage.com/320x200/000/fff.jpg&amp;text=&quot;+rdate.toString());
+				e.setProperty(&quot;owner&quot;, &quot;f&quot; + i);
+				e.setProperty(&quot;date&quot;,new Date());
+
+				// Create user friends
+				HashSet&lt;String&gt; toset = new HashSet&lt;String&gt;();
+				while (toset.size() &lt; 5) {
+					toset.add(&quot;f&quot; + r.nextInt(100));
+				}
+				e.setProperty(&quot;to&quot;, toset);
+
+				HashSet&lt;String&gt; like = new HashSet&lt;String&gt;();
+				while (like.size() &lt; 5) {
+					like.add(&quot;f&quot; + r.nextInt(100));
+				}
+				e.setProperty(&quot;like&quot;, like);
+				e.setProperty(&quot;likec&quot;,like.size());
+				
+				datastore.put(e);
+				response.getWriter().print(&quot;&lt;li&gt; created post:&quot; + e.getKey() + &quot;&lt;br&gt;&quot; + toset + &quot;&lt;br&gt;&quot;);
+			}
+
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

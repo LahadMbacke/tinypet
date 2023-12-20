@@ -1,0 +1,29 @@
+var PetitionComponent = {
+    view: function(vnode) {
+        var petition = vnode.attrs.petition; // Récupération de la pétition depuis les attributs
+
+        return m('div', { class: 'petition-box' }, [
+            m('h3', petition.properties.title),
+            m('p', petition.properties.description),
+            m('p', 'Signatures: ' + petition.properties.signatureCount), // Affichage du nombre de signatures
+            m('button', {
+                class: 'button is-link is-small',
+                onclick: function(e) {
+                    // Logique pour la signature
+                }
+            }, "Signature")
+        ]);
+    }
+};
+
+// Utilisation du composant dans la vue principale
+var PetitionsView = {
+    view: function() {
+        return m('div', { class: 'petitions-container' }, [
+            // Utilisation du composant PetitionComponent pour chaque pétition
+            Petitions.list.map(function(petition) {
+                return m(PetitionComponent, { petition: petition });
+            })
+        ]);
+    }
+};

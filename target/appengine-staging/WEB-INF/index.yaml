@@ -1,5 +1,21 @@
+# indexes:
+# # - kind: Friend 
+# #   properties: 
+# #     - name: friends 
+# #     - name: age 
+#   - kind: Petition
+#     properties:
+#     - name: signatures
+#     - name: creationDate
+#       direction: desc
+
+#     - name: tags
+#     - name: creationDate
+#       direction: desc
+
 indexes:
-- kind: Friend 
-  properties: 
-    - name: friends 
-    - name: age 
+- kind: Petition
+  properties:
+  - name: tags
+  - name: creationDate
+    direction: desc

@@ -4,8 +4,6 @@ inbound_services:
 derived_file_type:
 - java_precompiled
 auto_id_policy: default
-beta_settings:
-  'source_reference': 'https://github.com/momo54/webandcloud.git#ad79d0b77c31b68cc927513d7e971ae169198323'
 env_variables:
   'ENDPOINTS_SERVICE_NAME': 'sobike44.appspot.com'
 api_version: 'user_defined'
@@ -38,15 +36,23 @@ handlers:
   script: unused
   login: optional
   secure: optional
+- url: /MsgIndex
+  script: unused
+  login: optional
+  secure: optional
+- url: /TestTransaction
+  script: unused
+  login: optional
+  secure: optional
+- url: /Consistency
+  script: unused
+  login: optional
+  secure: optional
 - url: /prefixquery
   script: unused
   login: optional
   secure: optional
 - url: /friends
-  script: unused
-  login: optional
-  secure: optional
-- url: /MsgIndex
   script: unused
   login: optional
   secure: optional
@@ -90,19 +96,11 @@ handlers:
   script: unused
   login: optional
   secure: optional
-- url: /TestTransaction
-  script: unused
-  login: optional
-  secure: optional
 - url: /onetuple
   script: unused
   login: optional
   secure: optional
 - url: /countsh
-  script: unused
-  login: optional
-  secure: optional
-- url: /Consistency
   script: unused
   login: optional
   secure: optional

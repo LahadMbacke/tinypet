@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrefixQuery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">PrefixQuery.java</span></div><h1>PrefixQuery.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.KeyRange;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.PropertyProjection;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+
+import com.google.appengine.repackaged.com.google.datastore.v1.CompositeFilter;
+import com.google.appengine.repackaged.com.google.datastore.v1.Projection;
+import com.google.appengine.repackaged.com.google.datastore.v1.PropertyFilter;
+
+@WebServlet(name = &quot;PrefixQuery&quot;, urlPatterns = { &quot;/prefixquery&quot; })
+public class PrefixQuery extends HttpServlet {
+
+	@Override
+<span class="nc" id="L39">	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {</span>
+
+		response.setContentType(&quot;text/html&quot;);
+		response.setCharacterEncoding(&quot;UTF-8&quot;);
+
+		response.getWriter().print(&quot;&lt;h1&gt; Querying Post Data &lt;/h1&gt;&quot;);
+
+
+		response.getWriter().print(&quot;&lt;h2&gt; 2 Posts with key prefix f1 &lt;/h2&gt;&quot;);
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		Key k = KeyFactory.createKey(&quot;Post&quot;, &quot;f1:&quot;);
+
+		// query on key prefix
+		Query q = new Query(&quot;Post&quot;).setFilter(new FilterPredicate(Entity.KEY_RESERVED_PROPERTY, FilterOperator.GREATER_THAN, k));
+
+		PreparedQuery pq = datastore.prepare(q);
+		List&lt;Entity&gt; result = pq.asList(FetchOptions.Builder.withLimit(2));
+
+		response.getWriter().print(&quot;&lt;li&gt; result:&quot; + result.size() + &quot;&lt;br&gt;&quot;);
+		Entity last=null;
+		for (Entity entity : result) {
+			response.getWriter().print(&quot;&lt;li&gt;&quot; + entity.getKey());
+			last=entity;
+		}
+
+		response.getWriter().print(&quot;&lt;h2&gt; 10 Posts with key prefix f1:2020 &lt;/h2&gt;&quot;);
+
+		k = KeyFactory.createKey(&quot;Post&quot;, &quot;f1:2020&quot;);
+		q = new Query(&quot;Post&quot;).setFilter(new FilterPredicate(Entity.KEY_RESERVED_PROPERTY, FilterOperator.GREATER_THAN, k));
+
+		pq = datastore.prepare(q);
+		result = pq.asList(FetchOptions.Builder.withLimit(10));
+
+		response.getWriter().print(&quot;&lt;li&gt; result:&quot; + result.size() + &quot;&lt;br&gt;&quot;);
+		last=null;
+		for (Entity entity : result) {
+			response.getWriter().print(&quot;&lt;li&gt;&quot; + entity.getKey());
+			last=entity;
+		}
+
+		// Get all post where &quot;f1&quot; is in the receiver list (the 'to' list)
+		response.getWriter().print(&quot;&lt;h2&gt; 10 posts with f1 as receiver &lt;/h2&gt;&quot;);
+
+		q = new Query(&quot;Post&quot;).setFilter(new FilterPredicate(&quot;to&quot;, FilterOperator.EQUAL, &quot;f1&quot;));
+
+		pq = datastore.prepare(q);
+		result = pq.asList(FetchOptions.Builder.withLimit(10));
+
+		response.getWriter().print(&quot;&lt;li&gt; result:&quot; + result.size() + &quot;&lt;br&gt;&quot;);
+		last=null;
+		for (Entity entity : result) {
+			response.getWriter().print(&quot;&lt;li&gt;&quot; + entity.getProperty(&quot;body&quot;));
+			last=entity;
+		}
+		
+		// comment liker ??
+		// comment liker last.getKey()???
+		
+		response.getWriter().print(&quot;&lt;h2&gt; Does f1 liked the last post &lt;/h2&gt;&quot;);
+		
+		// Does &quot;f1&quot; liked the last post ??
+		Key post=last.getKey();
+		response.getWriter().print(&quot;examining:&quot;+post);
+		q = new Query(&quot;Post&quot;).setFilter(CompositeFilterOperator.and(
+				new FilterPredicate(&quot;like&quot;, FilterOperator.EQUAL, &quot;f1&quot;),
+				new FilterPredicate(Entity.KEY_RESERVED_PROPERTY, FilterOperator.EQUAL, post)));
+
+		pq = datastore.prepare(q);
+		result = pq.asList(FetchOptions.Builder.withLimit(1));
+		if (result.size()&gt;0) {
+			response.getWriter().print(&quot;nothing to do&quot;);
+		} 
+		// write the entity with the &quot;f1&quot; in post.like...
+		response.getWriter().print(&quot;adding f1 anyway&quot;);
+		response.getWriter().print(&quot;last key:&quot;+last.getKey()+&quot;, like:&quot;+last.getProperty(&quot;like&quot;));
+//		last.setProperty(&quot;like&quot;, last.getProperty(&quot;like&quot;)+&quot; f1&quot;));
+		//last.setProperty(&quot;count&quot;,last.)
+		datastore.put(last);
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

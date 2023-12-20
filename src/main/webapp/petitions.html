@@ -83,24 +83,46 @@
         <a href="petitions.html">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
-        <a href="#">Se connecter</a>
+        <a href="glogin-new.html" id="loginButton">Se connecter</a>
+    <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
     </nav>
-
-    <!-- <section class="search-section">
-        <h2>Recherche par Tag</h2>
+     <section class="search-section">
+        <!-- <h2>Recherche par Tag</h2>
          Formulaire de recherche par tag -->
         <!-- <form>
             <label for="tagSearch">Recherche par tag (catégorie) :</label>
             <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
             <button type="submit">Rechercher</button>
         </form>
-    </section>  -->
-
-    <main>
-        <script>
-            const id_user = sessionStorage.getItem("googleId");
-            const googleName = sessionStorage.getItem("googleName");
-            console.log(id_user)
+         -->
+    </section>  
+        <main>
+            <script>	
+                let id_user = sessionStorage.getItem("googleId");
+                let googleName = sessionStorage.getItem("googleName");
+                    window.onload = function() {
+                if (id_user) {
+                    userLoggedIn(); // Si l'utilisateur est connecté, déclencher la fonction correspondante
+                } else {
+                    userLoggedOut(); // Sinon, l'utilisateur est déconnecté
+                }
+            };
+                console.log(id_user)
+                function userLoggedIn() {
+            document.getElementById('loginButton').style.display = 'none'; // Cacher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'inline'; // Afficher le bouton de déconnexion
+        }
+    
+        // Au moment où vous détectez que l'utilisateur est déconnecté
+        function userLoggedOut() {
+            document.getElementById('loginButton').style.display = 'inline'; // Afficher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
+        }
+       // Fonction pour déconnecter l'utilisateur
+    function signOut() {
+        id_user = null
+        window.location.href = "glogin-new.html";
+    }
            
 
 var Petition = {
@@ -139,9 +161,6 @@ var Petition = {
 
 
 
-            function isLoggedIn() {
-                return id_user !== null;
-            }
 
             function signPetition(petitionId) {
                 if (!isLoggedIn()) {
@@ -164,10 +183,18 @@ var Petition = {
             }
 
 
+         // Fonction pour vérifier si l'utilisateur est connecté
+         function isLoggedIn() {
+           if (id_user)
+            return true; 
+           else
+            return false
+        }
+
         // Fonction pour rediriger vers la page de connexion
         function redirectToLogin() {
-            // Implémentez la logique pour rediriger l'utilisateur vers la page de connexion
-            // Par exemple, utilisez window.location.href pour rediriger l'utilisateur
+            window.location.href = "glogin-new.html";
+
         }
 
     

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestTransaction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">TestTransaction.java</span></div><h1>TestTransaction.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
+
+/**
+ * Servlet implementation class Transaction
+ */
+@WebServlet(&quot;/TestTransaction&quot;)
+public class TestTransaction extends HttpServlet implements Servlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+<span class="nc" id="L32">	protected void doGet(HttpServletRequest request, HttpServletResponse response)</span>
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append(&quot;Served at: &quot;).append(request.getContextPath());
+
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+		for (int i=0;i&lt;2;i++) {
+		Entity e=new Entity(&quot;Person&quot;,&quot;u&quot;+i);
+		datastore.put(e);
+		}
+		
+		// cleaning
+		Transaction txn = datastore.beginTransaction(); // error -&gt; single row transaction
+		Query q = new Query(&quot;Person&quot;);
+		PreparedQuery pq = datastore.prepare(q);
+		List&lt;Entity&gt; result = pq.asList(FetchOptions.Builder.withDefaults());
+		for (Entity entity : result) {
+//			Transaction txn = datastore.beginTransaction();
+			datastore.delete(entity.getKey());
+//			txn.commit();
+
+		}
+		txn.commit();
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

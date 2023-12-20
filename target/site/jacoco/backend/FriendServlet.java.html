@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FriendServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">FriendServlet.java</span></div><h1>FriendServlet.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.KeyRange;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+
+@WebServlet(name = &quot;FriendServlet&quot;, urlPatterns = { &quot;/friends&quot; })
+public class FriendServlet extends HttpServlet {
+
+	@Override
+<span class="nc" id="L33">	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {</span>
+
+		response.setContentType(&quot;text/html&quot;);
+		response.setCharacterEncoding(&quot;UTF-8&quot;);
+
+		Random r = new Random();
+
+		// Create users
+		for (int i = 0; i &lt; 500; i++) {
+			Entity e = new Entity(&quot;Friend&quot;, &quot;f&quot; + i);
+			e.setProperty(&quot;firstName&quot;, &quot;first&quot; + i);
+			e.setProperty(&quot;lastName&quot;, &quot;last&quot; + i);
+			e.setProperty(&quot;age&quot;,r.nextInt(100) + 1);
+
+			// Create user friends
+			HashSet&lt;String&gt; fset = new HashSet&lt;String&gt;();
+			while (fset.size() &lt; 200) {
+				fset.add(&quot;f&quot; + r.nextInt(500));
+			}
+			e.setProperty(&quot;friends&quot;, fset);
+
+			DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+			datastore.put(e);
+
+			response.getWriter().print(&quot;&lt;li&gt; created friend:&quot; + e.getKey() + &quot;&lt;br&gt;&quot; + fset + &quot;&lt;br&gt;&quot;);
+
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

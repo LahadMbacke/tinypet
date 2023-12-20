@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <script src="https://unpkg.com/mithril/mithril.js"></script>
+   
+
     
     <style>
         body {
@@ -84,18 +86,42 @@
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
         <a href="petitions.html">Mes pétitions</a>
-        <a href="#">Parcourir les pétitions</a>
+        <a href="petitions.html">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
-        <a href="#">Se connecter</a>
+        <a href="glogin-new.html" id="loginButton">Se connecter</a>
+    <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
     </nav>
 
 
     <main>
         <script>	
-            const id_user = sessionStorage.getItem("googleId");
-            const googleName = sessionStorage.getItem("googleName");
+            let id_user = sessionStorage.getItem("googleId");
+            let googleName = sessionStorage.getItem("googleName");
+                window.onload = function() {
+            if (id_user) {
+                userLoggedIn(); // Si l'utilisateur est connecté, déclencher la fonction correspondante
+            } else {
+                userLoggedOut(); // Sinon, l'utilisateur est déconnecté
+            }
+        };
             console.log(id_user)
+            function userLoggedIn() {
+        document.getElementById('loginButton').style.display = 'none'; // Cacher le bouton de connexion
+        document.getElementById('logoutButton').style.display = 'inline'; // Afficher le bouton de déconnexion
+    }
+
+    // Au moment où vous détectez que l'utilisateur est déconnecté
+    function userLoggedOut() {
+        document.getElementById('loginButton').style.display = 'inline'; // Afficher le bouton de connexion
+        document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
+    }
+   // Fonction pour déconnecter l'utilisateur
+function signOut() {
+    id_user = null
+    window.location.href = "glogin-new.html";
+}
+
 
     // Définition du modèle de l'application Mithril
     var Petition = {

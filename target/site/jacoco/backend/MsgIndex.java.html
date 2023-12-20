@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MsgIndex.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">WebAndCloud</a> &gt; <a href="index.source.html" class="el_package">backend</a> &gt; <span class="el_source">MsgIndex.java</span></div><h1>MsgIndex.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">package foo;</span>
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+
+/**
+ * Servlet implementation class MsgIndex
+ */
+@WebServlet(&quot;/MsgIndex&quot;)
+public class MsgIndex extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public MsgIndex() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+<span class="nc" id="L46">	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {</span>
+		// TODO Auto-generated method stub
+		
+		response.getWriter().append(&quot;&lt;h1&gt; Msg, MsgIndex and ParentKey&lt;/h1&gt;&quot;);
+		
+		Entity e = new Entity(&quot;Msg&quot;, Long.MAX_VALUE-(new Date()).getTime()+&quot;:&quot;+&quot;momo44@gmail.com&quot;);
+		e.setProperty(&quot;owner&quot;, &quot;momo44@gmail.com&quot;);
+		e.setProperty(&quot;url&quot;, &quot;my URL&quot;);
+		e.setProperty(&quot;body&quot;, &quot;my Body&quot;);
+		e.setProperty(&quot;likec&quot;, 0);
+		e.setProperty(&quot;date&quot;, new Date());
+
+		// 	Solution pour pas projeter les listes
+		Entity pi = new Entity(&quot;MsgIndex&quot;, e.getKey()); // Notice that the message e is the parent of pi.
+		HashSet&lt;String&gt; rec=new HashSet&lt;String&gt;();
+		rec.add(&quot;riri&quot;); rec.add(&quot;fifi&quot;); rec.add(&quot;loulou&quot;);
+		pi.setProperty(&quot;receivers&quot;,rec);
+
+		// 	Solution pour pas projeter les listes
+		Entity pi2 = new Entity(&quot;MsgIndex&quot;, e.getKey()); // Notice that the message e is the parent of pi.
+		HashSet&lt;String&gt; rec2=new HashSet&lt;String&gt;();
+		rec2.add(&quot;ruru&quot;); rec2.add(&quot;fufu&quot;); rec2.add(&quot;lolo&quot;);
+		pi2.setProperty(&quot;receivers&quot;,rec2);
+
+		
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		
+		datastore.put(e);
+		datastore.put(pi);
+		datastore.put(pi2);
+
+
+		response.getWriter().append(&quot;&lt;li&gt; Key of Msg:&quot;+e.getKey());
+		response.getWriter().append(&quot;&lt;li&gt; Key of MsgIndex:&quot;+pi.getKey());
+		response.getWriter().append(&quot;&lt;li&gt; Key of MsgIndex:&quot;+pi2.getKey());
+		
+
+		Query q = new Query(&quot;MsgIndex&quot;).setFilter(new FilterPredicate(&quot;receivers&quot;, FilterOperator.EQUAL, &quot;fifi&quot;));
+		q.setKeysOnly(); // So receivers are not loaded in memory ie. not surfaced
+
+		PreparedQuery pq = datastore.prepare(q);
+		List&lt;Entity&gt; result = pq.asList(FetchOptions.Builder.withDefaults());
+
+		ArrayList&lt;Key&gt; keys=new ArrayList&lt;Key&gt;();
+		for (Entity entity : result) {
+			keys.add(entity.getParent());
+		}
+		
+		Map&lt;Key, Entity&gt; msgs=datastore.get(keys); // Get all keys in parallel
+		for (Entity msg : msgs.values()) {
+			response.getWriter().append(&quot;&lt;li&gt;&quot;+msg.getProperty(&quot;body&quot;));
+		}
+		
+	}
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
