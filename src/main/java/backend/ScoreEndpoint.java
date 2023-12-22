@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 import com.google.api.server.spi.auth.common.User;
@@ -53,16 +52,6 @@ import com.google.appengine.api.datastore.Transaction;
 
 public class ScoreEndpoint {
 
-    private static final Logger LOGGER = Logger.getLogger(ScoreEndpoint.class.getName());
-
-
-	Random r = new Random();
-
-    // remember: return Primitives and enums are not allowed. 
-	@ApiMethod(name = "getRandom", httpMethod = HttpMethod.GET)
-	public RandomResult random() {
-		return new RandomResult(r.nextInt(6) + 1);
-	}
 
 	@ApiMethod(name = "hello", httpMethod = HttpMethod.GET)
 	public User Hello(User user) throws UnauthorizedException {
@@ -73,175 +62,8 @@ public class ScoreEndpoint {
 		return user;
 	} 
 
-	@ApiMethod(name = "scores", httpMethod = HttpMethod.GET)
-	public List<Entity> scores() {
-		Query q = new Query("Score").addSort("score", SortDirection.DESCENDING);
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(100));
-		return result;
-	}
-
-	@ApiMethod(name = "topscores", httpMethod = HttpMethod.GET)
-	public List<Entity> topscores() {
-		Query q = new Query("Score").addSort("score", SortDirection.DESCENDING);
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
-		return result;
-	}
-
-	@ApiMethod(name = "myscores", httpMethod = HttpMethod.GET)
-	public List<Entity> myscores(@Named("name") String name) {
-		Query q = new Query("Score").setFilter(new FilterPredicate("name", FilterOperator.EQUAL, name)).addSort("score",
-				SortDirection.DESCENDING);
-        //Query q = new Query("Score").setFilter(new FilterPredicate("name", FilterOperator.EQUAL, name));
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		PreparedQuery pq = datastore.prepare(q);
-		List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
-		return result;
-	}
-
-	@ApiMethod(name = "addScore", httpMethod = HttpMethod.GET)
-	public Entity addScore(@Named("score") int score, @Named("name") String name) {
-
-		Entity e = new Entity("Score", "" + name + score);
-		e.setProperty("name", name);
-		e.setProperty("score", score);
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		datastore.put(e);
-
-		return e;
-	}
-
-
-	@ApiMethod(name = "mypost", httpMethod = HttpMethod.GET)
-	public CollectionResponse<Entity> mypost(@Named("name") String name, @Nullable @Named("next") String cursorString) {
-
-	    Query q = new Query("Post").setFilter(new FilterPredicate("owner", FilterOperator.EQUAL, name));
-
-	    // https://cloud.google.com/appengine/docs/standard/python/datastore/projectionqueries#Indexes_for_projections
-	    //q.addProjection(new PropertyProjection("body", String.class));
-	    //q.addProjection(new PropertyProjection("date", java.util.Date.class));
-	    //q.addProjection(new PropertyProjection("likec", Integer.class));
-	    //q.addProjection(new PropertyProjection("url", String.class));
-
-	    // looks like a good idea but...
-	    // generate a DataStoreNeedIndexException -> 
-	    // require compositeIndex on owner + date
-	    // Explosion combinatoire.
-	    // q.addSort("date", SortDirection.DESCENDING);
-	    
-	    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	    PreparedQuery pq = datastore.prepare(q);
-	    
-	    FetchOptions fetchOptions = FetchOptions.Builder.withLimit(2);
-	    
-	    if (cursorString != null) {
-		fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
-		}
-	    
-	    QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
-	    cursorString = results.getCursor().toWebSafeString();
-	    
-	    return CollectionResponse.<Entity>builder().setItems(results).setNextPageToken(cursorString).build();
-	    
-	}
-    
-	@ApiMethod(name = "getPost",
-		   httpMethod = ApiMethod.HttpMethod.GET)
-	public CollectionResponse<Entity> getPost(User user, @Nullable @Named("next") String cursorString)
-			throws UnauthorizedException {
-
-		if (user == null) {
-			throw new UnauthorizedException("Invalid credentials");
-		}
-
-		Query q = new Query("Post").
-		    setFilter(new FilterPredicate("owner", FilterOperator.EQUAL, user.getEmail()));
-
-		// Multiple projection require a composite index
-		// owner is automatically projected...
-		// q.addProjection(new PropertyProjection("body", String.class));
-		// q.addProjection(new PropertyProjection("date", java.util.Date.class));
-		// q.addProjection(new PropertyProjection("likec", Integer.class));
-		// q.addProjection(new PropertyProjection("url", String.class));
-
-		// looks like a good idea but...
-		// require a composite index
-		// - kind: Post
-		//  properties:
-		//  - name: owner
-		//  - name: date
-		//    direction: desc
-
-		// q.addSort("date", SortDirection.DESCENDING);
-
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		PreparedQuery pq = datastore.prepare(q);
-
-		FetchOptions fetchOptions = FetchOptions.Builder.withLimit(2);
-
-		if (cursorString != null) {
-			fetchOptions.startCursor(Cursor.fromWebSafeString(cursorString));
-		}
-
-		QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
-		cursorString = results.getCursor().toWebSafeString();
-
-		return CollectionResponse.<Entity>builder().setItems(results).setNextPageToken(cursorString).build();
-	}
-
-	@ApiMethod(name = "postMsg", httpMethod = HttpMethod.POST)
-	public Entity postMsg(PostPetition petition) throws UnauthorizedException {
-        // if (petition == null) {
-        //     throw new UnauthorizedException("Invalid credentials");
-        // }
-          System.out.println(petition.title);
-            Entity e = new Entity("Petition"); // Création d'une entité pour la pétition
-            e.setProperty("title", petition.title);
-            e.setProperty("description", petition.description);
-            e.setProperty("creatorId", petition.creatorId);
-            e.setProperty("status", petition.status);
-            e.setProperty("tags", petition.tags);
-            e.setProperty("creationDate", new Date()); // Date de création de la pétition
-            e.setProperty("signatures",null);
-        
-            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-            datastore.put(e); // Stockage de l'entité de la pétition dans Datastore
-        
-            return e; // Retourne l'entité de la pétition nouvellement ajoutée
-        
-
-// 		if (user == null) {
-// 			throw new UnauthorizedException("Invalid credentials");
-// 		}
-
-// 		Entity e = new Entity("Post", Long.MAX_VALUE-(new Date()).getTime()+":"+user.getEmail());
-// 		e.setProperty("owner", user.getEmail());
-// 		e.setProperty("url", pm.url);
-// 		e.setProperty("body", pm.body);
-// 		e.setProperty("likec", 0);
-// 		e.setProperty("date", new Date());
-
-// ///		Solution pour pas projeter les listes
-// //		Entity pi = new Entity("PostIndex", e.getKey());
-// //		HashSet<String> rec=new HashSet<String>();
-// //		pi.setProperty("receivers",rec);
-		
-// 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-// 		Transaction txn = datastore.beginTransaction();
-// 		datastore.put(e);
-// //		datastore.put(pi);
-// 		txn.commit();
-// 		return e;
-	}
-
- 
+	
+	
 
     @ApiMethod(name = "addPetition", httpMethod = HttpMethod.POST)
     public Entity addPetition(PostPetition petition) throws UnauthorizedException {
@@ -257,7 +79,7 @@ public class ScoreEndpoint {
         List<String> signatures = new ArrayList<>();
         signatures.add(petition.creatorId); // Ajout de l'ID du créateur à la liste des signatures
         e.setProperty("signatures", signatures);
-    
+        e.setProperty("numberOfSignatures", signatures.size());
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         Key petitionKey = datastore.put(e); // Stockage de l'entité de la pétition dans Datastore avec une clé automatique
     
@@ -271,55 +93,28 @@ public class ScoreEndpoint {
     
     @ApiMethod(name = "topTenPetitions", httpMethod = HttpMethod.GET)
     public List<Entity> topTenPetitions() {
-        Query q = new Query("Petition").addSort("creationDate", Query.SortDirection.DESCENDING);
-
+        Query q = new Query("Petition")
+            .addSort("creationDate", Query.SortDirection.DESCENDING)
+            .addSort("numberOfSignatures", Query.SortDirection.DESCENDING);
+            
+    
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         PreparedQuery pq = datastore.prepare(q);
         List<Entity> result = pq.asList(FetchOptions.Builder.withLimit(10));
-
+    
         List<Entity> responseList = new ArrayList<>();
-
+    
         for (Entity petition : result) {
             // Ajouter l'ID de la pétition à la liste de réponses
             Key petitionKey = petition.getKey();
             petition.setProperty("id", petitionKey.getId());
             responseList.add(petition);
         }
-
+    
         return responseList;
     }
     
-
-    // @ApiMethod(name = "signPetition", httpMethod = HttpMethod.GET)
-    // public Entity signPetition(@Named("petitionId") String petitionId, @Named("userId") String userId) {
-
-    //     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    //     Query.Filter filter = new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, petitionId);
-    //     Query query = new Query("Petition").setFilter(filter);
     
-    //     Entity petitionEntity = datastore.prepare(query).asSingleEntity();
-    
-    //     if (petitionEntity != null) {
-    //         List<String> signatures = (List<String>) petitionEntity.getProperty("signatures");
-    
-    //         if (signatures != null && signatures.contains(userId)) {
-    //             LOGGER.log(Level.WARNING, "User with ID " + userId + " has already signed this petition");
-    //             return petitionEntity; // Retourner la pétition si l'utilisateur a déjà signé
-    //         } else {
-    //             LOGGER.log(Level.WARNING, "User with ID " + userId + " signing the petition");
-    //         }
-    
-    //         if (signatures == null) {
-    //             signatures = new ArrayList<>();
-    //         }
-    //         signatures.add(userId);
-    //         petitionEntity.setProperty("signatures", signatures);
-    
-    //         datastore.put(petitionEntity);
-    //     }
-    
-    //     return petitionEntity;
-    // }
     @ApiMethod(name = "signPetition", httpMethod = HttpMethod.GET)
     public Entity signPetition(@Named("petitionId") String petitionId, @Named("userId") String userId) {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -333,17 +128,14 @@ public class ScoreEndpoint {
             List<String> signatures = (List<String>) petitionEntity.getProperty("signatures");
     
             if (signatures != null && signatures.contains(userId)) {
-                LOGGER.log(Level.WARNING, "User with ID " + userId + " has already signed this petition");
                 return petitionEntity; // Retourner la pétition si l'utilisateur a déjà signé
-            } else {
-                LOGGER.log(Level.WARNING, "User with ID " + userId + " signing the petition");
-            }
-    
+            } 
             if (signatures == null) {
                 signatures = new ArrayList<>(); // Initialisation de la liste des signatures si elle est null
             }
             signatures.add(userId); // Ajout de l'utilisateur à la liste des signatures
             petitionEntity.setProperty("signatures", signatures);
+            petitionEntity.setProperty("numberOfSignatures", signatures.size());
     
             datastore.put(petitionEntity); // Mettre à jour l'entité avec les nouvelles signatures
         }

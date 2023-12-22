@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Page de Pétitions</title>
+<meta charset="UTF-8">
+<title>TinyPet</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+<script src="https://unpkg.com/mithril/mithril.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,33 +37,257 @@
             text-decoration: none;
             margin: 0 10px;
         }
-        nav a:last-child {
-            margin-left: 400px; /* Cette propriété pousse le lien "Profil" vers la droite */
+
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
+        select, input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background-color: #f9f9f9;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+        h2 {
+            text-align: center;
+            font-size: 36px;
+        }
+
+        .title {
+    font-size: 24px; /* Taille du titre */
+    margin-bottom: 10px; /* Marge en bas du titre */
+    color: #333; /* Couleur du titre */
+}
+
+.author {
+    font-weight: bold; /* Texte en gras pour l'auteur */
+    color: #666; /* Couleur de l'auteur */
+}
+.signs {
+    font-weight: bold; /* Texte en gras pour l'auteur */
+    color: #666; /* Couleur de l'auteur */
+}
+
+.description {
+    color: #444; /* Couleur de la description */
+}
+
+.tags {
+    margin-top: 10px; /* Marge en haut des tags */
+}
+
+.tag {
+    margin-right: 5px; /* Espace entre les tags */
+    padding: 2px 6px; /* Espacement intérieur des tags */
+    background-color: #eee; /* Couleur de fond des tags */
+    color: #333; /* Couleur du texte des tags */
+    border-radius: 4px; /* Bord arrondi des tags */
+    display: inline-block; /* Affichage en ligne */
+}
     </style>
 </head>
 <body>
     <header>
-        <h1>Lancer une pétition</h1>
+        <h2>Bienvenu à TinyPet 2023</h2>
     </header>
 
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
-        <a href="#">Mes pétitions</a>
         <a href="petitions.html">Parcourir les pétitions</a>
-        <a id="profilLink" href="glogin-new.html">Profil</a>
+        <a href="mySignsPet.html">Mes pétitions signées</a>
+        <a href="searchByTag.html">Rechercher par tag</a>
+        <a href="glogin-new.html" id="loginButton">Se connecter</a>
+    <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
+    <a id="profilLink" href="#">Profil</a>
     </nav>
-
-    <!-- Le reste de votre contenu irait ici -->
-
-    <script>
-        const googleName = sessionStorage.getItem("googleName");
-        
-        // Set the text content of the Profil link based on googleName
+     <section class="search-section">
+        <h2>Pétitions</h2>
+         
+    </section>  
+        <main>
+            <script>	
+                let id_user = sessionStorage.getItem("googleId");
+                let googleName = sessionStorage.getItem("googleName");
+                // Set the text content of the Profil link based on googleName
         const profilLink = document.getElementById("profilLink");
         if (profilLink) {
             profilLink.textContent = googleName;
         }
-    </script>
-</body>
-</html>
+            window.onload = function() {
+                if (id_user) {
+                    userLoggedIn(); // Si l'utilisateur est connecté, déclencher la fonction correspondante
+                } else {
+                    userLoggedOut(); // Sinon, l'utilisateur est déconnecté
+                }
+            };
+                console.log(id_user)
+                function userLoggedIn() {
+            document.getElementById('loginButton').style.display = 'none'; // Cacher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'inline'; // Afficher le bouton de déconnexion
+        }
+    
+        // Au moment où vous détectez que l'utilisateur est déconnecté
+        function userLoggedOut() {
+            document.getElementById('loginButton').style.display = 'inline'; // Afficher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
+        }
+        const navLinks = document.querySelectorAll('nav a');
+
+// Au clic sur un lien du menu de navigation
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        const linkHref = this.getAttribute('href');
+
+        // Vérifier si l'utilisateur n'est pas connecté et qu'il essaie d'accéder à une fonctionnalité nécessitant une connexion
+        if (!isLoggedIn() && (linkHref === "mySignsPet.html" || linkHref === "lancer_petition.html"
+                                 || linkHref === "mySignsPet.html" || linkHref === "searchByTag.html")) {
+            event.preventDefault(); // Empêcher le comportement par défaut du lien
+            redirectToLogin(); // Rediriger vers la page de connexion
+        }
+    });
+});
+// || linkHref === "mySignsPet.html" || linkHref === "lancer_petition.html"
+       // Fonction pour déconnecter l'utilisateur
+    function signOut() {
+        sessionStorage.clear();
+        window.location.href = "accueil.html";
+    }
+           
+
+var Petition = {
+    view: function(vnode) {
+        var petition = vnode.attrs.petition;
+        var petitionKey = petition.key.id;
+        var hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
+        var buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-danger is-fullwidth';
+        var buttonText = hasSigned ? 'Déjà signée' : 'Signature';
+
+        return m('div', { class: 'column is-one-third' }, [
+         m('div', { class: 'box' }, [
+        m('h1', { class: 'title' }, petition.properties.title), // Utilisation de la classe 'title'
+        m('p', { class: 'author' }, 'Auteur : ' + petition.properties.auteur), // Classe 'author' pour l'auteur
+        m('p', { class: 'description' }, petition.properties.description),
+        m('div', { class: 'tags' }, petition.properties.tags.map(tag => m('span', { class: 'tag' }, '#' + tag))), // Style pour chaque tag individuel
+        m('h1', { class: 'signs' },'Nombre de signatures : ' , petition.properties.numberOfSignatures),
+                m('button', {
+                    class: buttonClass,
+                    onclick: function() {
+                        if (isLoggedIn()) {
+                            if (!hasSigned) {
+                                signPetition(petitionKey);
+                            } else {
+                                alert('Vous avez déjà signé cette pétition.');
+                            }
+                        } else {
+                            redirectToLogin();
+                        }
+                    }
+                }, buttonText)
+            ])
+        ]);
+    }
+};
+
+
+
+
+            function signPetition(petitionId) {
+                if (!isLoggedIn()) {
+                    redirectToLogin();
+                    return;
+                }
+                var url = "_ah/api/myApi/v1/signPetition/"+petitionId+"/"+id_user
+
+                m.request({
+                    method: 'GET',
+                    url: url,
+                })
+                .then(response => {
+                    console.log('Signature enregistrée avec succès!');
+                    // Mettre à jour l'interface utilisateur si nécessaire
+                })
+                .catch(error => {
+                    console.error('Erreur lors de l\'enregistrement de la signature:', error);
+                });
+            }
+
+
+         // Fonction pour vérifier si l'utilisateur est connecté
+         function isLoggedIn() {
+           if (id_user)
+            return true; 
+           else
+            return false
+        }
+
+        // Fonction pour rediriger vers la page de connexion
+        function redirectToLogin() {
+            window.location.href = "accueil.html";
+
+        }
+
+    
+            var Petitions = {
+                list: [],
+                loadList: function() {
+                    return m.request({
+                        method: "GET",
+                        url: "_ah/api/myApi/v1/topTenPetitions"
+                    })
+                    .then(function(result) {
+                        Petitions.list = result.items || [];
+                        console.log("got:", result.items);
+                    });
+                }
+            };
+    
+            var PetitionsView = {
+                oninit: Petitions.loadList,
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        // m("h1", { class: 'title' }, 'Liste des Pétitions'),
+                        m('div', { class: 'columns is-multiline' }, 
+                            Petitions.list.map(function(petition) {
+                                return m(Petition, { petition: petition });
+                            })
+                        )
+                    ]);
+                }
+            };
+    
+            var Hello = {
+                view: function() {
+                    return m('div', { class: 'container' }, [
+                        m('div', { class: 'tile is-ancestor' }, [
+                            m("div", { class: 'tile' }, m('div', { class: 'tile is-child box' }, m(PetitionsView))),
+                        ])
+                    ]);
+                }
+            };
+    
+            m.mount(document.querySelector('main'), Hello);
+        </script>
+    </body>
+    </html>

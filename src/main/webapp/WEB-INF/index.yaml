@@ -14,8 +14,14 @@
 #       direction: desc
 
 indexes:
-- kind: Petition
-  properties:
-  - name: tags
-  - name: creationDate
-    direction: desc
+# - kind: Petition
+#   properties:
+#   - name: tags
+#   - name: creationDate
+#     direction: desc
+  - kind: Petition
+    properties:
+    - name: numberOfSignatures
+      direction: desc
+    - name: creationDate
+      direction: desc

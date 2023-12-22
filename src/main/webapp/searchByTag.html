@@ -69,25 +69,95 @@
         .search-section {
             margin-bottom: 20px;
         }
+        header a{
+        color: white;
+        font-size: 10;
+       }
+       .title {
+    font-size: 24px; /* Taille du titre */
+    margin-bottom: 10px; /* Marge en bas du titre */
+    color: #333; /* Couleur du titre */
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    width: calc(33.33% - 20px);
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.box {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.title {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.author,
+.description,
+.signs {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333333;
+}
+
+.tags {
+    margin-bottom: 15px;
+}
+
+.tag {
+    margin-right: 5px;
+    padding: 2px 6px;
+    background-color: #eee;
+    color: #333;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.button.is-success {
+    background-color: #28a745;
+    color: #ffffff;
+}
+
+.button.is-danger {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+
+
     </style>
 </head>
 <body>
     <header>
-        <h1>Pétitions</h1>
+    <a href="accueil_user.html"><h2>TinyPet2023</h2></a>
     </header>
 
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
-        <a href="petitions.html">Mes pétitions</a>
         <a href="petitions.html">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
-        <a href="webapp/glogin-new.html">Se connecter</a>
-    </nav>
+        <a href="glogin-new.html" id="loginButton">Se connecter</a>
+    <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
 
 
     <section class="search-section">
-        <h2>Recherche par Tag</h2>
         <!-- Formulaire de recherche par tag -->
         <form onsubmit="searchPetitions(event)">
             <label for="tagSearch">Recherche par tag (catégorie) :</label>
@@ -103,15 +173,36 @@
     </main>
 
     <script>
-        const id_user = sessionStorage.getItem("googleId");
+         let id_user = sessionStorage.getItem("googleId");
+                let googleName = sessionStorage.getItem("googleName");
+                    window.onload = function() {
+                if (id_user) {
+                    userLoggedIn(); // Si l'utilisateur est connecté, déclencher la fonction correspondante
+                } else {
+                    userLoggedOut(); // Sinon, l'utilisateur est déconnecté
+                }
+            };
+                console.log(id_user)
+                function userLoggedIn() {
+            document.getElementById('loginButton').style.display = 'none'; // Cacher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'inline'; // Afficher le bouton de déconnexion
+        }
+    
+        // Au moment où vous détectez que l'utilisateur est déconnecté
+        function userLoggedOut() {
+            document.getElementById('loginButton').style.display = 'inline'; // Afficher le bouton de connexion
+            document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
+        }
 
         function searchPetitions(event) {
             event.preventDefault();
             const tagSearchValue = document.getElementById('tagSearch').value;
+            console.log(tagSearchValue);
             loadPetitionsByTag(tagSearchValue);
         }
 
         function loadPetitionsByTag(tag) {
+            
             // URL pour interroger l'API avec le tag spécifié
             const url = "_ah/api/myApi/v1/findPetitionsByTag/"+tag
 
@@ -131,7 +222,6 @@
             });
         }
 
-        // Fonction pour afficher une pétition
         function renderPetition(petition) {
             const petitionKey = petition.key.id;
             const hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
@@ -139,17 +229,21 @@
             const buttonText = hasSigned ? 'Déjà signée' : 'Signature';
 
             return `
-                <div class='column is-one-third'>
-                    <div class='box'>
-                        <h1>Auteur : ${petition.properties.auteur}</h1>
-                        <p>Clé (ID) : ${petitionKey}</p>
-                        <h1>${petition.properties.title}</h1>
-                        <p>${petition.properties.description}</p>
-                        <p>Tags: ${petition.properties.tags.join(', ')}</p>
-                        <button class='${buttonClass}' onclick="handleButtonClick(${hasSigned}, ${petitionKey})">${buttonText}</button>
-                    </div>
-                </div>`;
+                        <div class='column is-one-third'>
+                            <div class='box'>
+                                <h1 class='title'>${petition.properties.title}</h1>
+                                <p class='author'>Auteur : ${petition.properties.auteur}</p>
+                                <p class='description'>${petition.properties.description}</p>
+                                <div class='tags'>
+                                    ${petition.properties.tags.map(tag => `<span class='tag'>#${tag}</span>`).join('')}
+                                </div>
+                                <h1 class='signs'>Nombre de signatures : ${petition.properties.numberOfSignatures}</h1>
+                                <button class='${buttonClass}' onclick="handleButtonClick(${hasSigned}, ${petitionKey})">${buttonText}</button>
+                            </div>
+                        </div>
+                    `;
         }
+
 
         // Fonction pour gérer le clic sur le bouton de signature
         function handleButtonClick(hasSigned, petitionKey) {
@@ -171,12 +265,30 @@
            else
             return false
         }
-
+        function signOut() {
+        sessionStorage.clear();
+        window.location.href = "accueil.html";
+    }
         // Fonction pour rediriger vers la page de connexion
         function redirectToLogin() {
             window.location.href = "glogin-new.html";
 
         }
+        const navLinks = document.querySelectorAll('nav a');
+
+// Au clic sur un lien du menu de navigation
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        const linkHref = this.getAttribute('href');
+
+        // Vérifier si l'utilisateur n'est pas connecté et qu'il essaie d'accéder à une fonctionnalité nécessitant une connexion
+        if (!isLoggedIn() && (linkHref === "mySignsPet.html" || linkHref === "lancer_petition.html"
+                                 || linkHref === "mySignsPet.html" || linkHref === "searchByTag.html")) {
+            event.preventDefault(); // Empêcher le comportement par défaut du lien
+            redirectToLogin(); // Rediriger vers la page de connexion
+        }
+    });
+});
     </script>
 </body>
 </html>

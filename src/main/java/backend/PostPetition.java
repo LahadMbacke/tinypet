@@ -15,6 +15,7 @@ public class PostPetition {
     public String status;
     public List<String> tags;
     public List<String> signatures;
+    public Long numberOfSignatures;
 
     // Constructeur
     public PostPetition() {

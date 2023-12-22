@@ -69,17 +69,59 @@
 
         .search-section {
             margin-bottom: 20px;
+            font-size: 35px;
+            color: #333;
         }
+        h2 {
+            text-align: center;
+            font-size: 36px;
+
+        }
+        header a{
+        color: white;
+        font-size: 10;
+    }
+    .title {
+    font-size: 24px; /* Taille du titre */
+    margin-bottom: 10px; /* Marge en bas du titre */
+    color: #333; /* Couleur du titre */
+}
+
+.author {
+    font-weight: bold; /* Texte en gras pour l'auteur */
+    color: #666; /* Couleur de l'auteur */
+}
+.signs {
+    font-weight: bold; /* Texte en gras pour l'auteur */
+    color: rgb(70, 3, 3); /* Couleur de l'auteur */
+}
+
+.description {
+    color: #444; /* Couleur de la description */
+}
+
+.tags {
+    margin-top: 10px; /* Marge en haut des tags */
+}
+
+.tag {
+    margin-right: 5px; /* Espace entre les tags */
+    padding: 2px 6px; /* Espacement intérieur des tags */
+    background-color: #eee; /* Couleur de fond des tags */
+    color: rgb(17, 20, 220); /* Couleur du texte des tags */
+    border-radius: 4px; /* Bord arrondi des tags */
+    display: inline-block; /* Affichage en ligne */
+}
+
+
     </style>
 </head>
 <body>
     <header>
-        <h1>Pétitions</h1>
+    <a href="accueil_user.html"><h2>TinyPet2023</h2></a>
     </header>
-
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
-        <a href="petitions.html">Mes pétitions</a>
         <a href="petitions.html">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
@@ -87,14 +129,7 @@
     <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
     </nav>
      <section class="search-section">
-        <!-- <h2>Recherche par Tag</h2>
-         Formulaire de recherche par tag -->
-        <!-- <form>
-            <label for="tagSearch">Recherche par tag (catégorie) :</label>
-            <input type="text" id="tagSearch" name="tagSearch" placeholder="Entrez un tag...">
-            <button type="submit">Rechercher</button>
-        </form>
-         -->
+        <h2>Top 100 petitions triées par date</h2>
     </section>  
         <main>
             <script>	
@@ -120,8 +155,8 @@
         }
        // Fonction pour déconnecter l'utilisateur
     function signOut() {
-        id_user = null
-        window.location.href = "glogin-new.html";
+        sessionStorage.clear();
+        window.location.href = "accueil.html";
     }
            
 
@@ -132,14 +167,16 @@ var Petition = {
         var hasSigned = petition.properties.signatures && petition.properties.signatures.includes(id_user);
         var buttonClass = hasSigned ? 'button is-success is-fullwidth' : 'button is-danger is-fullwidth';
         var buttonText = hasSigned ? 'Déjà signée' : 'Signature';
+        const tags = petition.properties.tags.map(tag => `#${tag}`); // Ajouter '#' devant chaque tag
+
 
         return m('div', { class: 'column is-one-third' }, [
-            m('div', { class: 'box' }, [
-                m('h1', 'Auteur : ' + petition.properties.auteur),
-                m('p', 'Clé (ID) : ' + petitionKey),
-                m('h1', petition.properties.title),
-                m('p', petition.properties.description),
-                m('p', 'Tags: ' + petition.properties.tags.join(', ')),
+         m('div', { class: 'box' }, [
+        m('h1', { class: 'title' }, petition.properties.title), // Utilisation de la classe 'title'
+        m('p', { class: 'author' }, 'Auteur : ' + petition.properties.auteur), // Classe 'author' pour l'auteur
+        m('p', { class: 'description' }, petition.properties.description),
+        m('div', { class: 'tags' }, petition.properties.tags.map(tag => m('span', { class: 'tag' }, '#' + tag))), // Style pour chaque tag individuel
+        m('h1', { class: 'signs' },'Nombre de signatures : ' , petition.properties.numberOfSignatures),
                 m('button', {
                     class: buttonClass,
                     onclick: function() {
@@ -196,6 +233,21 @@ var Petition = {
             window.location.href = "glogin-new.html";
 
         }
+        const navLinks = document.querySelectorAll('nav a');
+
+// Au clic sur un lien du menu de navigation
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        const linkHref = this.getAttribute('href');
+
+        // Vérifier si l'utilisateur n'est pas connecté et qu'il essaie d'accéder à une fonctionnalité nécessitant une connexion
+        if (!isLoggedIn() && (linkHref === "mySignsPet.html" || linkHref === "lancer_petition.html"
+                                 || linkHref === "mySignsPet.html" || linkHref === "searchByTag.html")) {
+            event.preventDefault(); // Empêcher le comportement par défaut du lien
+            redirectToLogin(); // Rediriger vers la page de connexion
+        }
+    });
+});
 
     
             var Petitions = {

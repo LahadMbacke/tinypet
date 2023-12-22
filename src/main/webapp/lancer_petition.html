@@ -74,24 +74,33 @@
         button:hover {
             background-color: #555;
         }
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        header a{
+        color: white;
+        font-size: 10;
+    }
     </style>
 
     <title>Lancer une Pétition</title>
 </head>
 <body>
-    <header>
-        <h1>Lancer une Pétition</h1>
+    <header>    
+    <a href="accueil_user.html"><h2>TinyPet2023</h2></a>
     </header>
-
     <nav>
         <a href="lancer_petition.html">Lancer une pétition</a>
-        <a href="petitions.html">Mes pétitions</a>
         <a href="petitions.html">Parcourir les pétitions</a>
         <a href="mySignsPet.html">Mes pétitions signées</a>
         <a href="searchByTag.html">Rechercher par tag</a>
         <a href="glogin-new.html" id="loginButton">Se connecter</a>
     <a href="#" id="logoutButton" style="display: none;" onclick="signOut()">Se déconnecter</a>
     </nav>
+    <!-- <section class="search-section">
+        <h1>Creation de petition</h1>
+    </section>  -->
 
 
     <main>
@@ -117,11 +126,36 @@
         document.getElementById('logoutButton').style.display = 'none'; // Cacher le bouton de déconnexion
     }
    // Fonction pour déconnecter l'utilisateur
-function signOut() {
-    id_user = null
-    window.location.href = "glogin-new.html";
-}
+  // Fonction pour vérifier si l'utilisateur est connecté
+  function isLoggedIn() {
+           if (id_user)
+            return true; 
+           else
+            return false
+        }
+        function signOut() {
+        sessionStorage.clear();
+        window.location.href = "accueil.html";
+    }
+     // Fonction pour rediriger vers la page de connexion
+     function redirectToLogin() {
+            window.location.href = "glogin-new.html";
+        }
+    const navLinks = document.querySelectorAll('nav a');
 
+// Au clic sur un lien du menu de navigation
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        const linkHref = this.getAttribute('href');
+
+        // Vérifier si l'utilisateur n'est pas connecté et qu'il essaie d'accéder à une fonctionnalité nécessitant une connexion
+        if (!isLoggedIn() && (linkHref === "mySignsPet.html" || linkHref === "lancer_petition.html"
+                                 || linkHref === "mySignsPet.html" || linkHref === "searchByTag.html")) {
+            event.preventDefault(); // Empêcher le comportement par défaut du lien
+            redirectToLogin(); // Rediriger vers la page de connexion
+        }
+    });
+});
 
     // Définition du modèle de l'application Mithril
     var Petition = {
